@@ -1,0 +1,336 @@
+{
+  "name": "AI Lead Qualifier",
+  "nodes": [
+    {
+      "parameters": {
+        "pollTimes": {
+          "item": [
+            {
+              "mode": "everyMinute"
+            }
+          ]
+        },
+        "documentId": {
+          "__rl": true,
+          "value": "1hI7Xu_65SleTq3SEPyLDhH11jHRR7SNahyXPPxHQBcE",
+          "mode": "list",
+          "cachedResultName": "Automated Lead Notification System (n8n)",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1hI7Xu_65SleTq3SEPyLDhH11jHRR7SNahyXPPxHQBcE/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 1376175981,
+          "mode": "list",
+          "cachedResultName": "Form Responses 1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1hI7Xu_65SleTq3SEPyLDhH11jHRR7SNahyXPPxHQBcE/edit#gid=1376175981"
+        },
+        "event": "rowAdded",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheetsTrigger",
+      "typeVersion": 1,
+      "position": [
+        -976,
+        96
+      ],
+      "id": "975e1707-01cf-408b-9f1d-22c4a222768a",
+      "name": "New Lead Trigger",
+      "credentials": {
+        "googleSheetsTriggerOAuth2Api": {
+          "id": "zwRpUt4vl5yjX4xB",
+          "name": "Google Sheets Trigger account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "6a6a1f24-bc15-4e9e-8e6a-31491ad05b1b",
+              "name": "notify_high",
+              "value": "adam.jones3122@gmail.com",
+              "type": "string"
+            },
+            {
+              "id": "4b6fd569-bd39-48e8-bfe3-56e7b008f9dd",
+              "name": "notify_medium",
+              "value": "vishwagad2000@gmail.com",
+              "type": "string"
+            },
+            {
+              "id": "78826b9c-24c4-4ea7-88ce-811b593feaa3",
+              "name": "client_name",
+              "value": "Ameya n8n",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -752,
+        96
+      ],
+      "id": "fe378c35-be27-4fa3-a113-f11cce90c8dc",
+      "name": "Client Settings"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "3aa92041-a319-41ed-9f30-79de761f8b6d",
+              "name": "lead_text",
+              "value": "=Name: {{ $('New Lead Trigger').item.json.Name }}\nEmail: {{ $('New Lead Trigger').item.json.Email }}\nMessage: {{ $('New Lead Trigger').item.json.Message }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -544,
+        96
+      ],
+      "id": "bd81a11d-5fb7-468a-9867-9daae79edbe6",
+      "name": "Prepare Lead Text"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "cb84e58b-25f7-4281-91dc-fc1b5e1355cc",
+              "leftValue": "={{ $json.output[0].content[0].text }}",
+              "rightValue": "=HIGH",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            },
+            {
+              "id": "487142b5-72d9-41d0-9223-e350f208b512",
+              "leftValue": "={{ $json.output[0].content[0].text }}",
+              "rightValue": "=MEDIUM",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
+            }
+          ],
+          "combinator": "or"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        32,
+        96
+      ],
+      "id": "4e3e33db-4820-489a-9e62-c439d952a2b4",
+      "name": "Check Lead Priority"
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "value": "gpt-4o-mini",
+          "mode": "list",
+          "cachedResultName": "GPT-4O-MINI"
+        },
+        "responses": {
+          "values": [
+            {
+              "content": "=You are a lead qualification assistant.\n\nClassify the lead below into ONE category only:\n- HIGH (clear intent to buy, pricing, hire, urgent)\n- MEDIUM (general interest, questions)\n- LOW (spam, vague, irrelevant)\n\nRules:\n- Respond with ONLY one word: HIGH, MEDIUM, or LOW\n- No explanation\n\nLead:\n{{ $json.lead_text }}\n"
+            }
+          ]
+        },
+        "builtInTools": {},
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 2.1,
+      "position": [
+        -336,
+        96
+      ],
+      "id": "335930d7-b710-41a0-867a-6add80282742",
+      "name": "Lead qualification assistant",
+      "credentials": {
+        "openAiApi": {
+          "id": "6XOLdGrE24SFCZBV",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [
+        304,
+        304
+      ],
+      "id": "a7641ed6-b556-477f-8c5f-b870f99e0de4",
+      "name": "No Operation, do nothing"
+    },
+    {
+      "parameters": {
+        "sendTo": "={{ $json.output[0].content[0].text === 'HIGH'\n    ? $('Client Settings').item.json.notify_high\n    : $('Client Settings').item.json.notify_medium\n}}\n",
+        "subject": "={{ $json.output[0].content[0].text === 'HIGH' ? '🔥 HIGH Intent Lead' : '🟡 Medium Intent Lead' }}\n",
+        "message": "=<b> New lead received for </b> {{ $('Client Settings').item.json.client_name }} <br><br>\n\n<b> Priority: </b> {{ $json.output[0].content[0].text }} <br><br>\n\n<b> Name: </b> {{ $('New Lead Trigger').item.json.Name }} <br>\n\n<b> Email: </b> {{ $('New Lead Trigger').item.json.Email }}<br><br>\n\n<b> Message: </b><br>\n{{ $('New Lead Trigger').item.json.Message }} <br><br>\n\n<b> Submitted at: </b><br>\n{{ $('New Lead Trigger').item.json.Timestamp }}\n",
+        "options": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        288,
+        80
+      ],
+      "id": "a8bcea96-2f2a-496a-9ad5-ddd9bf6feee7",
+      "name": "Notify High/Medium Lead",
+      "webhookId": "ecb61229-ccee-43ce-ab9b-203ebf14449e",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "EFHCsSCH2XsYvSgO",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "content": "## I'm a note \n📝 Client-Facing Description (SHORT & CLEAR)\nWhat it does\n\nThis system uses AI to automatically analyze incoming leads and classify them as High, Medium, or Low intent.\n\nYou are notified only when a lead actually matters.\n\nHow it works (non-technical)\n\nA new lead comes in (via form or email)\n\nAI checks the message intent\n\nLeads are labeled as:\n\n🔥 High intent (pricing, urgent, hiring)\n\n🟡 Medium intent (general interest)\n\n❄️ Low intent (spam / vague)\n\nHigh and Medium leads trigger notifications\n\nLow-quality leads are ignored\n\nWhy businesses like this\n\nNo notification overload\n\nFaster response to serious leads\n\nBetter focus on real opportunities\n\nFully automated, but controlled\n\nSafety\n\nNo automatic replies\n\nOnly notifications\n\nDeterministic AI output (HIGH / MEDIUM / LOW)",
+        "height": 896,
+        "width": 480
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -1664,
+        -288
+      ],
+      "typeVersion": 1,
+      "id": "8b9adfcb-4149-4d09-b5d7-f98871cfc196",
+      "name": "Sticky Note"
+    },
+    {
+      "parameters": {
+        "content": "## I'm a note \nAdmin form link: https://docs.google.com/forms/d/1me7E5FWqFHSKlYDKaGm2nC4oPLAIL0n9lcT80Ut9RlY/edit\n\nuser form link:\nhttps://forms.gle/WmxAGoXJdVMUy4Tc7",
+        "height": 192,
+        "width": 384,
+        "color": 4
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -1024,
+        -272
+      ],
+      "typeVersion": 1,
+      "id": "27957589-b5f6-4a08-8334-caec1d569334",
+      "name": "Sticky Note1"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "New Lead Trigger": {
+      "main": [
+        [
+          {
+            "node": "Client Settings",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Client Settings": {
+      "main": [
+        [
+          {
+            "node": "Prepare Lead Text",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare Lead Text": {
+      "main": [
+        [
+          {
+            "node": "Lead qualification assistant",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check Lead Priority": {
+      "main": [
+        [
+          {
+            "node": "Notify High/Medium Lead",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "No Operation, do nothing",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Lead qualification assistant": {
+      "main": [
+        [
+          {
+            "node": "Check Lead Priority",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "1739c1c5-c1c4-4591-942e-146f873b6018",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "8ebb9a89b18275ec93b0191e2838a8a0c727abe8840377645f4c2322f2d509e9"
+  },
+  "id": "g5tqic9PcERFIRn9",
+  "tags": [
+    {
+      "updatedAt": "2025-12-15T11:02:30.122Z",
+      "createdAt": "2025-12-15T11:02:30.122Z",
+      "id": "Om7mJW037RfgDitP",
+      "name": "Working"
+    },
+    {
+      "updatedAt": "2025-12-21T11:06:31.266Z",
+      "createdAt": "2025-12-20T11:05:13.044Z",
+      "id": "fkwznjZgd3ws8epc",
+      "name": "Pay Ready"
+    }
+  ]
+}
